@@ -316,7 +316,6 @@ body {
 .student-info { flex: 1; min-width: 0; }
 .student-name { font-size: 0.86rem; font-weight: 500; color: var(--ink); }
 .student-balance { font-size: 0.67rem; color: var(--ink-light); margin-top: 1px; }
-.student-balance.owes { color: #b87020; font-weight: 600; }
 
 .paid-tag {
   font-size: 0.58rem; font-weight: 600; letter-spacing: 0.8px;
@@ -326,12 +325,7 @@ body {
   flex-shrink: 0;
 }
 .student-row.paid-row .paid-tag { opacity: 1; }
-.partial-tag {
-  font-size: 0.58rem; font-weight: 600; letter-spacing: 0.8px;
-  text-transform: uppercase; background: var(--gold-pale);
-  color: #7a5c00; border-radius: 4px; padding: 2px 6px;
-  border: 1px solid var(--gold-light); flex-shrink: 0;
-}
+
 .student-amt {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1rem; font-weight: 700; color: var(--forest);
@@ -339,45 +333,6 @@ body {
 }
 .student-row.paid-row .student-amt,
 .student-row.paid-row .student-name { color: var(--sage); }
-
-/* partial payment bar */
-.partial-bar {
-  display: none;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 16px 10px;
-  background: var(--mint-pale);
-  flex-wrap: wrap;
-}
-.partial-bar.open { display: flex; }
-.p-dollar { font-size: 0.8rem; color: var(--sage); font-weight: 600; }
-.partial-input {
-  border: 1.5px solid var(--mint);
-  border-radius: 8px;
-  padding: 6px 10px;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--forest);
-  width: 110px;
-  outline: none;
-  background: white;
-}
-.partial-input:focus { border-color: var(--sage); }
-.partial-save {
-  background: var(--forest); color: white; border: none;
-  border-radius: 8px; padding: 6px 14px;
-  font-family: 'Jost', sans-serif; font-size: 0.72rem; font-weight: 600;
-  cursor: pointer; transition: background 0.15s;
-}
-.partial-save:hover { background: var(--sage); }
-.partial-clear {
-  background: none; border: 1.5px solid #ddd; color: #aaa;
-  border-radius: 8px; padding: 6px 10px;
-  font-family: 'Jost', sans-serif; font-size: 0.7rem; cursor: pointer;
-}
-.partial-clear:hover { border-color: #bbb; color: #888; }
-.partial-of { font-size: 0.65rem; color: var(--ink-light); }
 
 /* week dots */
 .group-weeks {
@@ -558,7 +513,7 @@ const OTHER = [
 ];
 
 // ═══ STATE ═══
-let state = { paid:{}, sessions:{}, partials:{}, packages:{} };
+let state = { paid:{}, sessions:{}, packages:{} };
 try { const d = localStorage.getItem('tennis_v3'); if(d) state = {...state, ...JSON.parse(d)}; } catch(e){}
 
 // Initialize packages if not set
@@ -587,7 +542,7 @@ function renderPackages() {
 
     const collectedAmt = g.students.reduce((sum,_,si) => {
       const k = `${g.id}-${si}`;
-      return sum + (state.paid[k] ? ppp : (state.partials[k] || 0));
+      return sum + (state.paid[k] ? ppp : 0);
     }, 0);
     const allPaid = g.students.every((_,si) => state.paid[`${g.id}-${si}`]);
 
@@ -600,12 +555,9 @@ function renderPackages() {
     const studentsHtml = g.students.map((name,si) => {
       const k = `${g.id}-${si}`;
       const isPaid = !!state.paid[k];
-      const partial = state.partials[k] || 0;
-      const isPartial = !isPaid && partial > 0;
-      const owed = ppp - partial;
       return `
         <div class="student-row ${isPaid?'paid-row':''}" id="srow-${g.id}-${si}">
-          <div class="student-main" onclick="toggleStudent('${g.id}',${si},${ppp})">
+          <div class="student-main" onclick="toggleStudent('${g.id}',${si})">
             <div class="check-box ${isPaid?'checked':''}">
               <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
                 <path d="M1 4.5L4 7.5L10 1" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -613,20 +565,10 @@ function renderPackages() {
             </div>
             <div class="student-info">
               <div class="student-name">${name}</div>
-              ${isPaid ? `<div class="student-balance">Paid in full</div>` :
-                isPartial ? `<div class="student-balance owes">Paid $${partial} · Owes $${owed}</div>` : ''}
+              ${isPaid ? `<div class="student-balance">Paid in full</div>` : ''}
             </div>
-            ${isPaid ? `<div class="paid-tag">Paid</div>` : isPartial ? `<div class="partial-tag">Partial</div>` : ''}
+            ${isPaid ? `<div class="paid-tag">Paid</div>` : ''}
             <div class="student-amt">$${ppp}</div>
-          </div>
-          <div class="partial-bar" id="pbar-${g.id}-${si}">
-            <span class="p-dollar">$</span>
-            <input class="partial-input" type="number" id="pinput-${g.id}-${si}"
-              placeholder="Amount paid" value="${partial||''}" min="0" max="${ppp}"
-              onclick="event.stopPropagation()">
-            <button class="partial-save" onclick="savePartial('${g.id}',${si},${ppp})">Save</button>
-            ${partial>0 ? `<button class="partial-clear" onclick="clearPartial('${g.id}',${si})">Clear</button>` : ''}
-            <span class="partial-of">of $${ppp}</span>
           </div>
         </div>`;
     }).join('');
@@ -671,41 +613,17 @@ function setPackage(gid, weeks) {
   // Clear paid status when package changes
   GROUPS.find(g => g.id === gid).students.forEach((_,si) => {
     delete state.paid[`${gid}-${si}`];
-    delete state.partials[`${gid}-${si}`];
   });
   save();
   renderPackages();
   renderWeekly();
 }
 
-function toggleStudent(gid, si, ppp) {
+function toggleStudent(gid, si) {
   const k = `${gid}-${si}`;
-  if (state.paid[k]) {
-    state.paid[k] = false; save(); renderPackages(); return;
-  }
-  const bar = document.getElementById(`pbar-${gid}-${si}`);
-  if (bar) {
-    bar.classList.toggle('open');
-    if (bar.classList.contains('open')) {
-      const inp = document.getElementById(`pinput-${gid}-${si}`);
-      if (inp) { setTimeout(()=>{ inp.focus(); inp.select(); }, 50); }
-    }
-  }
-}
-
-function savePartial(gid, si, ppp) {
-  const k = `${gid}-${si}`;
-  const val = parseFloat(document.getElementById(`pinput-${gid}-${si}`).value) || 0;
-  if (val >= ppp)      { state.paid[k] = true; delete state.partials[k]; }
-  else if (val > 0)    { state.partials[k] = val; state.paid[k] = false; }
-  else                 { delete state.partials[k]; state.paid[k] = false; }
-  save(); renderPackages();
-}
-
-function clearPartial(gid, si) {
-  const k = `${gid}-${si}`;
-  delete state.partials[k]; state.paid[k] = false;
-  save(); renderPackages();
+  state.paid[k] = !state.paid[k];
+  save();
+  renderPackages();
 }
 
 function updateStats() {
@@ -717,7 +635,6 @@ function updateStats() {
       const k = `${g.id}-${si}`;
       total += ppp;
       if (state.paid[k]) collected += ppp;
-      else if (state.partials[k]) collected += state.partials[k];
     });
   });
   const pct = total > 0 ? collected/total*100 : 0;
