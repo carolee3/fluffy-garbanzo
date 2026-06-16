@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tennis Tracker - Summer Lessons</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #F9F7F3;
+      color: #5A5A5A;
+    }
+
+    .container {
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    header {
+      background-color: #FFF;
+      border-bottom: 1px solid #E8E8E8;
+      padding: 24px 20px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      color: #6B9E7F;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #999;
+      margin: 0;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      padding: 0 20px 24px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .stat-card {
+      background-color: #FFF;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid #E8E8E8;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      margin: 0 0 8px 0;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      margin: 0;
+    }
+
+    section {
+      padding: 0 20px 32px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      color: #333;
+    }
+
+    .lesson-cards {
+      display: grid;
+      gap: 20px;
+    }
+
+    .lesson-card {
+      background-color: #FFF;
+      border: 1px solid #E8E8E8;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .lesson-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0 0 4px 0;
+      color: #333;
+    }
+
+    .lesson-meta {
+      font-size: 13px;
+      color: #999;
+      margin: 0 0 16px 0;
+    }
+
+    .lesson-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 16px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #F0F0F0;
+    }
+
+    .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #999;
+      text-transform: uppercase;
+    }
+
+    .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    select {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #E8E8E8;
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      background-color: #FFF;
+      cursor: pointer;
+    }
+
+    .group-summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+      padding: 16px;
+      background-color: #F9F7F3;
+      border-radius: 8px;
+    }
+
+    .summary-item {
+      text-align: center;
+    }
+
+    .summary-label {
+      font-size: 12px;
+      color: #999;
+      margin: 0 0 6px 0;
+      font-weight: 600;
+    }
+
+    .summary-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+      margin: 0;
+    }
+
+    .students-list {
+      margin-top: 16px;
+    }
+
+    .students-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #999;
+      margin: 0 0 12px 0;
+      text-transform: uppercase;
+    }
+
+    .student-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background-color: #F9F7F3;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .student-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      accent-color: #6B9E7F;
+    }
+
+    .student-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+
+    .student-owes {
+      font-size: 12px;
+      color: #999;
+      margin: 2px 0 0 0;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge.paid {
+      background-color: #E8F5E9;
+      color: #2E7D32;
+    }
+
+    .badge.unpaid {
+      background-color: #FFE8E8;
+      color: #C97C7C;
+    }
+
+    .reset-buttons {
+      display: flex;
+      gap: 12px;
+      padding: 0 20px 32px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+      justify-content: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #F0F0F0;
+      border: 1px solid #E8E8E8;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: #5A5A5A;
+    }
+
+    button:hover {
+      background-color: #E8E8E8;
+    }
+
+    footer {
+      text-align: center;
+      padding: 32px 20px;
+      color: #999;
+      font-size: 12px;
+      border-top: 1px solid #E8E8E8;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎾 Summer Tennis Tracker</h1>
+      <p class="subtitle">Track your lessons, students, and payments</p>
+    </header>
+
+    <div class="dashboard-grid" id="dashboard"></div>
+
+    <section>
+      <h2>🏆 Teaching Lessons</h2>
+      <div class="lesson-cards" id="lessonCards"></div>
+    </section>
+
+    <div class="reset-buttons">
+      <button onclick="resetPayments()">Reset Payments</button>
+      <button onclick="resetCompletions()">Reset Completions</button>
+    </div>
+
+    <footer>
+      <p>Built for your summer 2024 teaching season ☀️</p>
+    </footer>
+  </div>
+
+  <script>
+    // LESSON DATA
+    const lessonsData = [
+      {
+        id: 'sylvia-group',
+        name: 'Sylvia Tawil\'s Group',
+        day: 'Sunday',
+        time: '9:30 AM',
+        location: 'Julie Cohen\'s Court',
+        pricePerWeek: 50,
+        students: ['Michele Tawil', 'Rosie Cohen', 'Janna Braha', 'Nadine Dweck'],
+      },
+      {
+        id: 'school-girls',
+        name: 'School Girls',
+        day: 'Monday',
+        time: '5:00 PM',
+        location: 'Shirley Jemal\'s Court',
+        pricePerWeek: 60,
+        students: ['Hannah', 'Lisa', 'Marilyn', 'Elizabeth', 'Camille'],
+      },
+      {
+        id: 'max-esses',
+        name: 'Max Esses',
+        day: 'Monday',
+        time: '6:30–7:30 PM',
+        location: 'Private',
+        pricePerWeek: 120,
+        students: ['Max Esses'],
+      },
+      {
+        id: 'sophia-group',
+        name: 'Sophia Mizrahi Group',
+        day: 'Tuesday',
+        time: '5:30–6:30 PM',
+        location: 'Private',
+        pricePerWeek: 60,
+        students: ['Sophia Mizrahi', 'Renee Dushey'],
+      },
+      {
+        id: 'barbara-camille',
+        name: 'Barbara & Camille',
+        day: 'Wednesday',
+        time: '6:00 PM',
+        location: 'Private',
+        pricePerWeek: 60,
+        students: ['Barbara Harrari', 'Camille Sakkal'],
+      },
+      {
+        id: 'ely-friend',
+        name: 'Ely & Friend',
+        day: 'Thursday',
+        time: '5:30–6:30 PM',
+        location: 'Private',
+        pricePerWeek: 60,
+        students: ['Ely Tawil', 'Ely\'s Friend'],
+      },
+    ];
+
+    // STATE
+    let packages = {};
+    let paidStudents = {};
+    let completedLessons = {};
+
+    // INITIALIZE
+    function init() {
+      lessonsData.forEach(lesson => {
+        packages[lesson.id] = 6;
+        paidStudents[lesson.id] = {};
+        completedLessons[lesson.id] = false;
+        lesson.students.forEach(student => {
+          paidStudents[lesson.id][student] = false;
+        });
+      });
+      render();
+    }
+
+    // RENDER
+    function render() {
+      renderDashboard();
+      renderLessons();
+    }
+
+    function renderDashboard() {
+      let totalIncome = 0;
+      let collectedTotal = 0;
+      let totalStudents = 0;
+      let completedCount = 0;
+
+      lessonsData.forEach(lesson => {
+        const weeks = packages[lesson.id];
+        const groupTotal = lesson.students.length * lesson.pricePerWeek * weeks;
+        totalIncome += groupTotal;
+
+        lesson.students.forEach(student => {
+          totalStudents += 1;
+          const studentOwes = lesson.pricePerWeek * weeks;
+          if (paidStudents[lesson.id][student]) {
+            collectedTotal += studentOwes;
+          }
+        });
+
+        if (completedLessons[lesson.id]) {
+          completedCount += 1;
+        }
+      });
+
+      const dashboard = document.getElementById('dashboard');
+      dashboard.innerHTML = `
+        <div class="stat-card">
+          <p class="stat-label">Total Income</p>
+          <p class="stat-value">$${totalIncome.toLocaleString()}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Collected</p>
+          <p class="stat-value" style="color: #6B9E7F;">$${collectedTotal.toLocaleString()}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Outstanding</p>
+          <p class="stat-value" style="color: #C97C7C;">$${(totalIncome - collectedTotal).toLocaleString()}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Students</p>
+          <p class="stat-value">${totalStudents}</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Lessons Completed</p>
+          <p class="stat-value">${completedCount} / ${lessonsData.length}</p>
+        </div>
+      `;
+    }
+
+    function renderLessons() {
+      const lessonCards = document.getElementById('lessonCards');
+      lessonCards.innerHTML = lessonsData.map(lesson => {
+        const weeks = packages[lesson.id];
+        const clientTotal = lesson.pricePerWeek * weeks;
+        const groupTotal = clientTotal * lesson.students.length;
+        const collected = lesson.students.filter(s => paidStudents[lesson.id][s]).length * clientTotal;
+        const outstanding = groupTotal - collected;
+
+        return `
+          <div class="lesson-card">
+            <h3 class="lesson-title">${lesson.name}</h3>
+            <p class="lesson-meta">${lesson.day} at ${lesson.time} • ${lesson.location}</p>
+            
+            <div class="lesson-row">
+              <div>
+                <p class="label">Price per week</p>
+                <p class="value">$${lesson.pricePerWeek}</p>
+              </div>
+              <div>
+                <p class="label">Package</p>
+                <select onchange="handlePackageChange('${lesson.id}', this.value)">
+                  <option value="2" ${weeks === 2 ? 'selected' : ''}>2 weeks</option>
+                  <option value="4" ${weeks === 4 ? 'selected' : ''}>4 weeks</option>
+                  <option value="6" ${weeks === 6 ? 'selected' : ''}>6 weeks</option>
+                  <option value="8" ${weeks === 8 ? 'selected' : ''}>8 weeks</option>
+                </select>
+              </div>
+              <div>
+                <p class="label">Students</p>
+                <p class="value">${lesson.students.length}</p>
+              </div>
+            </div>
+
+            <div class="group-summary">
+              <div class="summary-item">
+                <p class="summary-label">Group Total</p>
+                <p class="summary-value">$${groupTotal.toLocaleString()}</p>
+              </div>
+              <div class="summary-item">
+                <p class="summary-label">Collected</p>
+                <p class="summary-value" style="color: #6B9E7F;">$${collected.toLocaleString()}</p>
+              </div>
+              <div class="summary-item">
+                <p class="summary-label">Outstanding</p>
+                <p class="summary-value" style="color: #C97C7C;">$${outstanding.toLocaleString()}</p>
+              </div>
+            </div>
+
+            <div class="students-list">
+              <p class="students-title">Students (${lesson.students.length})</p>
+              ${lesson.students.map(student => {
+                const isPaid = paidStudents[lesson.id][student];
+                return `
+                  <div class="student-row">
+                    <div class="student-info">
+                      <input type="checkbox" ${isPaid ? 'checked' : ''} onchange="toggleStudent('${lesson.id}', '${student}')">
+                      <div>
+                        <p class="student-name">${student}</p>
+                        <p class="student-owes">$${clientTotal}</p>
+                      </div>
+                    </div>
+                    <span class="badge ${isPaid ? 'paid' : 'unpaid'}">
+                      ${isPaid ? 'Paid' : 'Unpaid'}
+                    </span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function handlePackageChange(lessonId, weeks) {
+      packages[lessonId] = parseInt(weeks);
+      render();
+    }
+
+    function toggleStudent(lessonId, student) {
+      paidStudents[lessonId][student] = !paidStudents[lessonId][student];
+      render();
+    }
+
+    function resetPayments() {
+      lessonsData.forEach(lesson => {
+        lesson.students.forEach(student => {
+          paidStudents[lesson.id][student] = false;
+        });
+      });
+      render();
+    }
+
+    function resetCompletions() {
+      lessonsData.forEach(lesson => {
+        completedLessons[lesson.id] = false;
+      });
+      render();
+    }
+
+    // START
+    init();
+  </script>
+</body>
+</html>
